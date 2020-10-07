@@ -1,0 +1,8 @@
+*.txt
+*.Rdata
+final/*
+.Rhistory
+*.zip
+test/*
+train/*
+
