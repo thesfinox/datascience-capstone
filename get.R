@@ -37,26 +37,26 @@ set.seed(42)
 
 #---- blogs data
 print("Partitioning blogs data...")
-index <- as.logical(rbinom(n=length(blogs), size=1, prob=0.15))
+index <- as.logical(rbinom(n=length(blogs), size=1, prob=0.05))
 blogs.train <- blogs[index]
 blogs.out   <- blogs[-index]
-index <- as.logical(rbinom(n=length(blogs.out), size=1, prob=0.05))
+index <- as.logical(rbinom(n=length(blogs.out), size=1, prob=0.01))
 blogs.test  <- blogs.out[index]
 
 #---- news data
 print("Partitioning news data...")
-index <- as.logical(rbinom(n=length(news), size=1, prob=0.15))
+index <- as.logical(rbinom(n=length(news), size=1, prob=0.03))
 news.train <- news[index]
 news.out   <- news[-index]
-index <- as.logical(rbinom(n=length(news.out), size=1, prob=0.05))
+index <- as.logical(rbinom(n=length(news.out), size=1, prob=0.01))
 news.test  <- news.out[index]
 
 #---- twitter data
 print("Partitioning Twitter data...")
-index <- as.logical(rbinom(n=length(twitter), size=1, prob=0.15))
+index <- as.logical(rbinom(n=length(twitter), size=1, prob=0.02))
 twitter.train <- twitter[index]
 twitter.out   <- twitter[-index]
-index <- as.logical(rbinom(n=length(twitter.out), size=1, prob=0.05))
+index <- as.logical(rbinom(n=length(twitter.out), size=1, prob=0.005))
 twitter.test  <- twitter.out[index]
 
 # save partitions to separate files

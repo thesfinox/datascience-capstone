@@ -1,0 +1,122 @@
+---
+title: "Next Word Prediction"
+author: "Riccardo Finotello"
+date: "08/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE)
+```
+
+## Synopsis
+
+The goal of the project is to build a webapp capable of predicting the next word given an incomplete sentence as input.
+Here we present the initial exploratory data analysis performed on the dataset provided by [SwiftKey](https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip).
+We show how we build the training and the test folds and some basic reference plots showing how they are formed.
+
+## Corpora
+
+After downloading the datasets we use a biased coin toss to select:
+
+1. 15% of the entries in the news, blogs and Twitter corpora for the **training** set,
+2. 5% of the entries in the news, blogs and Twitter corpora for the **test** set.
+
+```{r corpora, cache=TRUE}
+library(quanteda)
+library(readtext)
+library(parallel)
+library(data.table)
+library(pander)
+
+setDTthreads(threads=detectCores())
+quanteda_options("threads" = detectCores())
+quanteda_options("verbose" = FALSE)
+
+train <- corpus(readtext("./train/*.txt"))
+test  <- corpus(readtext("./test/*.txt"))
+
+summary.train <- summary(train)
+summary.test  <- summary(test)
+
+save(summary.train, summary.test, file="./summaries.Rdata")
+```
+
+The training set is thus formed by:
+```{r training set}
+pander(summary.train)
+```
+While the test set is made by:
+```{r test set}
+pander(summary.test)
+```
+
+## Tokens
+
+Tokenisation is made possible through the library *quanteda*.
+In the process we remove punctuation, symbols and separators to prune the dataset from elements we are not interesting in learning.
+However we keep most social media related objects and numbers.
+
+```{r tokens, cache=TRUE}
+load("./tokens.Rdata")
+```
+
+The training tokens have also been pruned of profanity and bad words.
+We use [this list](https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/badwordslist/badwords.txt) as source for the bad words appearing in the sentences (the list was formerly used by Google).
+
+The training tokens are thus formed as:
+```{r training tokens}
+pander(data.table(no_tokens=ntoken(tokens.train)))
+```
+While the training set is made of:
+```{r test tokens}
+pander(data.table(no_tokens=ntoken(tokens.test)))
+```
+
+## Frequency Estimation
+
+Before moving further with the analysis we show the distributions in frequency of words and basic n-grams (groups of words).
+```{r frequency matrices, cache=TRUE}
+load("./ngram_table.Rdata")
+```
+In fact the most used words in the **training** set are:
+```{r training frequency unigram}
+train.tot <- sum(unigram$count)
+freq      <- unigram[, frequency:= count / train.tot][order(-count)][1:10]
+barplot(frequency ~ u1, data=freq, xlab="", main="Training Set")
+```
+We can clearly see that the most frequent words are therefore stop words in English, as expected.
+
+At the same time we can also take a look at the occurrences of common bigrams in English:
+```{r training frequency bigram}
+train.tot <- sum(bigram$count)
+freq      <- bigram[, word:= paste(b1,b2)]
+freq      <- bigram[, frequency:= count / train.tot][order(-count)][1:10]
+barplot(frequency ~ word, data=freq, xlab="", main="Training Set", las=2)
+```
+Which again shows that conjunctions and articles are definitely more common than other words.
+We will therefore need to be extremely careful when predicting these words: they must be precise in order to build the right sentence.
+
+We can then do the same for groups of three words in English:
+```{r training frequency trigram}
+train.tot <- sum(trigram$count)
+freq      <- trigram[, word:= paste(t1,t2,t3)]
+freq      <- trigram[, frequency:= count / train.tot][order(-count)][1:10]
+barplot(frequency ~ word, data=freq, xlab="", main="Training Set", las=2)
+```
+We finally start to recognise full constructions in English.
+The web app will therefore need to capture these features.
+
+Groups of four words are finally showing a hint of more complex sentences:
+```{r training frequency fourgram}
+train.tot <- sum(fourgram$count)
+freq      <- fourgram[, word:= paste(f1,f2,f3,f4)]
+freq      <- fourgram[, frequency:= count / train.tot][order(-count)][1:10]
+barplot(frequency ~ word, data=freq, xlab="", main="Training Set", las=2)
+```
+
+## Future Directions
+
+From what we have shown, it seems that the main challenge will be the estimation of the probability that a random word follows a given group of 4, 3, or 2 other words.
+We will most probably implement a version of the [Kneser-Ney smoothing](https://en.wikipedia.org/wiki/Kneser%E2%80%93Ney_smoothing) algorithm, since a simple estimation of the frequency might result to be too inaccurate.
+In general it seems that the choice of the training set as presented here might be a good starting point for the analysis.

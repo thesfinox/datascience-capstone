@@ -6,6 +6,7 @@
 #
 
 library(quanteda)
+library(readtext)
 library(data.table)
 library(parallel)
 
@@ -15,45 +16,32 @@ quanteda_options("verbose" = FALSE)
 
 # load test data
 print("Loading test data...")
-load("./tokens.Rdata")
+test  <- corpus(readtext("./test/*.txt"))
+test  <- tokens(test,
+                what="sentence",
+                remove_punct      = TRUE,
+                remove_symbols    = TRUE,
+                remove_numbers    = FALSE,
+                remove_url        = TRUE,
+                remove_separators = TRUE,
+                split_hyphens     = FALSE,
+                include_docvars   = TRUE,
+                padding           = FALSE,
+               )
+test <- c(test[[1]], test[[2]], test[[3]])
 
-# create test n-grams
-print("Creating test n-gram models...")
-unigrams.test  <- tokens_ngrams(tokens.test, n=1, concatenator=" ")
-bigrams.test   <- tokens_ngrams(tokens.test, n=2, concatenator=" ")
-trigrams.test  <- tokens_ngrams(tokens.test, n=3, concatenator=" ")
-fourgrams.test <- tokens_ngrams(tokens.test, n=4, concatenator=" ")
+# remove last word from each sentence
+test.remove <- lapply(test, (function(x) {word(x, start=1, end=-2)}))
+# save last word and remove punctuation
+test.last   <- lapply(test, (function(x) {word(x, start=-1)}))
+test.last   <- sapply(test.last, (function(x) {gsub("[[:punct:]]+", "", x)}))
 
-# concatenate news, blogs, Twitter data
-unigrams.test  <- c(unigrams.test[[1]], unigrams.test[[2]], unigrams.test[[3]])
-bigrams.test   <- c(bigrams.test[[1]], bigrams.test[[2]], bigrams.test[[3]])
-trigrams.test  <- c(trigrams.test[[1]], trigrams.test[[2]], trigrams.test[[3]])
-fourgrams.test <- c(fourgrams.test[[1]], fourgrams.test[[2]], fourgrams.test[[3]])
-
-# load predictions functions
-print("Loading predictions...")
+# load data for predictions
 source("./predictions.R")
 
-# for each (n-1)-gram take the corresponding n-gram and compare prediction with last word
-compare <- function(left, right, i) {
-    last <- tokens(tolower(right[i]),
-                   remove_punct      = TRUE,
-                   remove_symbols    = TRUE,
-                   remove_numbers    = FALSE,
-                   remove_url        = TRUE,
-                   remove_separators = TRUE,
-                   split_hyphens     = FALSE,
-                   include_docvars   = TRUE,
-                   padding           = FALSE
-                  )
-    last <- rev(last[[1]])[1]
-    pred <- getNext(left[i])
-    
-    # return if the last word is in the predictions
-    last %in% pred
-}
+# compute predictions
+predictions <- sapply(test.remove, (function(x) {getNext(x, n=1)}))
 
-# perform check bigrams w/ trigrams
-# e.g. compare(bigrams.test, trigrams.test, 1) ---> TRUE
-# e.g. compare(bigrams.test, trigrams.test, 3) ---> FALSE
-# N.B.: how to systematically check more instances?
+# do predictions match the last words?
+accuracy <- sum(as.integer(test.last == predictions)) / length(predictions)
+print(paste("Accuracy: ", accuracy))

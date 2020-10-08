@@ -5,4 +5,7 @@ final/*
 *.zip
 test/*
 train/*
-
+eda_cache/*
+pitch-figure/*
+*.html
+pitch.md

@@ -1,0 +1,53 @@
+Next Word Prediction
+========================================================
+author: Riccardo Finotello
+date: 9th October 2020
+autosize: true
+
+What Is It?
+========================================================
+
+Predict next word as in Android/iOS phones (data courtesy of [SwiftKey](https://en.wikipedia.org/wiki/Microsoft_SwiftKey)):
+
+- **easy** to use: input words and get predictions
+- based on **real world** data
+- support **social media** tagging
+- **simple** source code = **no surprises** (no tracking, no ads, etc.)
+
+How Does It Work?
+========================================================
+
+Data:
+
+- from **modern Internet** blogs, news articles, Twitter
+- **500k+** sentences sampled for training the algorithm + internal testing
+- split into 1-grams, 2-grams, 3-grams, 4-grams for **better linguistic constructions**
+
+Algorithm:
+
+- only ASCII characters for **simplification**
+- **no profanities** (filtered using **Google's** lists)
+- **state of the art [Kneser-Ney](https://en.wikipedia.org/wiki/Kneser%E2%80%93Ney_smoothing)** algorithm used
+
+Why Should I Use It? Where Is It?
+========================================================
+
+1. **reliable** implementation of occurrence probability (see [Kneser-Nay smoothing](https://en.wikipedia.org/wiki/Kneser%E2%80%93Ney_smoothing))
+2. **fast** implementation: the app relies on simple computations and `data.table` in *R*
+3. **light memory** usage: `data.table` allows developers to store and reuse code in memory-efficient ways
+4. **free** and **reliably accessible**: the app is located on [Shinyapps.io](https://www.shinyapps.io/) thus it is always accessible
+
+[![shinyapps.io](./img/shinyapps.png)](https://www.shinyapps.io/)
+
+Future Developments
+========================================================
+
+1. add more **social media** support: separate tag handling, username search, etc.
+2. add more data to **improve predictions**
+3. **collaborative online learning**: save what you type and learn your preferences
+4. additional **language** support
+5. use  **deep learning** NPL models (BERT, StructBERT, T5, etc.)
+
+<div align="center">
+<img src="./img/wordcloud.png" width=300 height=300>
+</div>
