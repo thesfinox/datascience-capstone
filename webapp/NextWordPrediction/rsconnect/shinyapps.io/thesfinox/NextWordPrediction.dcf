@@ -4,9 +4,9 @@ username:
 account: thesfinox
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
-appId: 2971176
-bundleId: 3717573
+appId: 2974893
+bundleId: 3718649
 url: https://thesfinox.shinyapps.io/NextWordPrediction/
-when: 1602171900.15261
+when: 1602193193.30091
 asMultiple: FALSE
 asStatic: FALSE

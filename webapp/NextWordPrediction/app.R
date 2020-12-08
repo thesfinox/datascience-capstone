@@ -8,6 +8,7 @@ library(shiny)
 library(quanteda)
 library(data.table)
 library(parallel)
+library(markdown)
 
 setDTthreads(threads=detectCores())
 quanteda_options("threads" = detectCores())
